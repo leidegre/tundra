@@ -1322,6 +1322,18 @@ Build {
 
 -------------------------------------------------------------------------------
 
+[NOTE]
+====
+If your `OutputFiles` do not end up in the build output in a predictable manner they won't be fed properly into future build units. Predictable output files are required since the `DefRule` needs to be able to build out the DAG. Also take extra care to use proper Lua (one-based index) syntax to append outputs into a table correctly if you generateing multiple files in one pass.
+
+[source, lua]
+----
+local output_files = {}
+output_files[#output_files + 1] = "a" --append "a" to table output_files
+----
+
+====
+
 === Adding unit extensions
 
 Unit extensions hook capture data during parsing which can later be transformed
