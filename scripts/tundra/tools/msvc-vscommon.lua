@@ -247,6 +247,7 @@ function apply_msvc_visual_studio(version, env, options)
 
   local target_arch = options.TargetArch or "x86"
   local host_arch = options.HostArch or get_host_arch()
+  local vs_edition = options.Edition or "BuildTools" -- applies to VS 2017 and later
 
   -- SDKs are identified by SdkVersion or vs version
   -- each VS version defines a default SDK to use.
@@ -262,8 +263,6 @@ function apply_msvc_visual_studio(version, env, options)
       vs_root = string.gsub(vc_root, "\\VC\\$", "\\")
     end
   end
-  assert(vs_root, "Visual Studio [Version " .. version .. "] isn't installed. To use a different Visual Studio version, edit tundra.lua accordingly")
-  vs_root = string.gsub(vs_root, "\\+$", "\\")
 
   local vc_lib
   local vc_bin
@@ -272,16 +271,21 @@ function apply_msvc_visual_studio(version, env, options)
   if version == "15.0" then
     -- Read VCToolsVersion from Microsoft.VCToolsVersion.default.txt
     -- as described in https://blogs.msdn.microsoft.com/vcblog/2016/10/07/compiler-tools-layout-in-visual-studio-15
+
+    vs_root = os.getenv('ProgramFiles(x86)') .. "\\Microsoft Visual Studio\\2017\\" .. vs_edition .. "\\"
+
     local vc_tools_version
     local vc_tools_version_file = io.open(vs_root .. "VC\\Auxiliary\\Build\\Microsoft.VCToolsVersion.default.txt", "r")
     if vc_tools_version_file then
       vc_tools_version = vc_tools_version_file:read "*line" -- the file contains the current version string
       vc_tools_version = vc_tools_version:gsub("^%s*(.-)%s*$", "%1") -- trim any leading or trailing whitespace
     else
-      error("Compiler tools version for Visual Studio 2017 could not be detected because Microsoft.VCToolsVersion.default.txt does not exist.")
+      error("Visual Studio [2017 " .. vs_edition .. "] could not be found")
     end
     vc_tools_root = vs_root .. "VC\\Tools\\MSVC\\" .. vc_tools_version .. "\\"
   else
+    assert(vs_root, "Visual Studio [Version " .. version .. "] isn't installed. To use a different Visual Studio version, edit tundra.lua accordingly")
+    vs_root = string.gsub(vs_root, "\\+$", "\\")
     vc_tools_root = vs_root .. "VC\\"
   end
 
